@@ -77,8 +77,6 @@ class Grant_Insight_JGrants_Importer_Improved {
         
         // 管理画面の初期化
         if (is_admin()) {
-            // 管理画面メニューを早期に登録
-            add_action('admin_menu', array($this, 'add_admin_menu'), 10);
             add_action('admin_init', array($this, 'init_admin'));
         }
         
@@ -151,10 +149,6 @@ class Grant_Insight_JGrants_Importer_Improved {
      * 管理画面の初期化
      */
     public function init_admin() {
-        // 管理画面メニューを直接追加（確実に表示されるよう最優先で実行）
-        add_action('admin_menu', array($this, 'add_admin_menu'));
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
-        
         // 管理画面クラスが存在する場合のみ初期化
         if (class_exists('GIJI_Admin_Manager')) {
             // 必要なコンポーネントを初期化（存在しない場合はダミーオブジェクト）
@@ -210,279 +204,43 @@ class Grant_Insight_JGrants_Importer_Improved {
                 }
             } catch (Exception $e) {
                 error_log('管理画面初期化エラー: ' . $e->getMessage());
-            }
-        }
-    }
-    
-    /**
-     * 管理画面メニューの追加
-     */
-    public function add_admin_menu() {
-        // メインメニューページ（編集者以上でアクセス可能）
-        add_menu_page(
-            'Grant Insight Jグランツ・インポーター 改善版',
-            'Jグランツ・インポーター',
-            'edit_posts', // より広い権限レベル
-            'grant-insight-jgrants-importer-improved',
-            array($this, 'display_main_page'),
-            'dashicons-money-alt',
-            30
-        );
-        
-        // サブメニューページ
-        add_submenu_page(
-            'grant-insight-jgrants-importer-improved',
-            '設定',
-            '設定',
-            'manage_options',
-            'giji-improved-settings',
-            array($this, 'display_settings_page')
-        );
-        
-        add_submenu_page(
-            'grant-insight-jgrants-importer-improved',
-            'プロンプト管理',
-            'プロンプト管理',
-            'edit_posts',
-            'giji-improved-prompts',
-            array($this, 'display_prompts_page')
-        );
-        
-        add_submenu_page(
-            'grant-insight-jgrants-importer-improved',
-            'ログ',
-            'ログ',
-            'edit_posts',
-            'giji-improved-logs',
-            array($this, 'display_logs_page')
-        );
-        
-        add_submenu_page(
-            'grant-insight-jgrants-importer-improved',
-            '統計',
-            '統計',
-            'edit_posts',
-            'giji-improved-statistics',
-            array($this, 'display_statistics_page')
-        );
-    }
-    
-    /**
-     * メイン管理画面の表示
-     */
-    public function display_main_page() {
-        ?>
-        <div class="wrap">
-            <h1>Grant Insight Jグランツ・インポーター 改善版</h1>
-            
-            <div class="notice notice-success">
-                <p><strong>プラグインが正常に動作しています！</strong></p>
-            </div>
-            
-            <div class="card" style="max-width: none; margin: 20px 0;">
-                <h2 class="title">基本機能</h2>
-                <p>このプラグインはJグランツAPIと統合したAI自動化助成金情報管理システムです。</p>
-                <ul style="margin-left: 20px;">
-                    <li>✓ 助成金情報の自動取得とインポート</li>
-                    <li>✓ AIによる記事の自動生成</li>
-                    <li>✓ キーワード検索機能の改善</li>
-                    <li>✓ 高度なカスタマイズ機能</li>
-                </ul>
-            </div>
-            
-            <div class="card" style="max-width: none; margin: 20px 0;">
-                <h2 class="title">クイック操作</h2>
-                <p>
-                    <a href="<?php echo admin_url('admin.php?page=giji-improved-settings'); ?>" class="button button-primary">設定画面へ</a>
-                    <a href="<?php echo admin_url('admin.php?page=giji-improved-prompts'); ?>" class="button">プロンプト管理</a>
-                    <a href="<?php echo admin_url('admin.php?page=giji-improved-logs'); ?>" class="button">ログを確認</a>
-                    <a href="<?php echo admin_url('admin.php?page=giji-improved-statistics'); ?>" class="button">統計を確認</a>
-                </p>
-            </div>
-            
-            <div class="card" style="max-width: none; margin: 20px 0;">
-                <h2 class="title">システム状態</h2>
-                <?php
-                $status = array();
                 
-                // 必要なクラスファイルの存在確認
-                $required_files = array(
-                    'admin/class-admin-manager-improved.php',
-                    'includes/class-security-manager.php',
-                    'includes/class-logger.php',
-                    'includes/class-jgrants-api-client-improved.php',
-                    'includes/class-unified-ai-client-improved.php',
-                    'includes/class-grant-data-processor-improved.php',
-                    'includes/class-automation-controller-improved.php'
-                );
-                
-                foreach ($required_files as $file) {
-                    $file_path = GIJI_IMPROVED_PLUGIN_DIR . $file;
-                    $status[] = array(
-                        'name' => basename($file, '.php'),
-                        'status' => file_exists($file_path),
-                        'path' => $file
+                // 最低限の管理画面を作成
+                add_action('admin_menu', function() {
+                    add_menu_page(
+                        'Jグランツ・インポーター改善版',
+                        'Jグランツ・インポーター改善版',
+                        'manage_options',
+                        'grant-insight-jgrants-importer-improved',
+                        function() {
+                            echo '<div class="wrap">';
+                            echo '<h1>Jグランツ・インポーター改善版</h1>';
+                            echo '<div class="notice notice-warning"><p>プラグインの初期化中にエラーが発生しました。しばらくしてから再度お試しください。</p></div>';
+                            echo '</div>';
+                        },
+                        'dashicons-money-alt',
+                        30
                     );
-                }
-                ?>
-                <table class="widefat striped">
-                    <thead>
-                        <tr>
-                            <th>コンポーネント</th>
-                            <th>状態</th>
-                            <th>ファイルパス</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($status as $item): ?>
-                        <tr>
-                            <td><?php echo esc_html($item['name']); ?></td>
-                            <td>
-                                <?php if ($item['status']): ?>
-                                    <span style="color: #00a32a; font-weight: bold;">✓ 正常</span>
-                                <?php else: ?>
-                                    <span style="color: #d63638; font-weight: bold;">✗ エラー</span>
-                                <?php endif; ?>
-                            </td>
-                            <td><code><?php echo esc_html($item['path']); ?></code></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="card" style="max-width: none; margin: 20px 0;">
-                <h2 class="title">プラグイン情報</h2>
-                <table class="form-table">
-                    <tr>
-                        <th>バージョン</th>
-                        <td><?php echo esc_html(GIJI_IMPROVED_PLUGIN_VERSION); ?></td>
-                    </tr>
-                    <tr>
-                        <th>プラグインディレクトリ</th>
-                        <td><code><?php echo esc_html(GIJI_IMPROVED_PLUGIN_DIR); ?></code></td>
-                    </tr>
-                    <tr>
-                        <th>現在のユーザー権限</th>
-                        <td>
-                            <?php
-                            $current_user = wp_get_current_user();
-                            echo esc_html($current_user->user_login) . ' (';
-                            if (current_user_can('manage_options')) {
-                                echo '管理者';
-                            } elseif (current_user_can('edit_posts')) {
-                                echo '編集者以上';
-                            } else {
-                                echo '制限あり';
-                            }
-                            echo ')';
-                            ?>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-        <?php
-    }
-    
-    /**
-     * 設定画面の表示
-     */
-    public function display_settings_page() {
-        ?>
-        <div class="wrap">
-            <h1>設定</h1>
-            <div class="notice notice-info">
-                <p>設定機能は現在開発中です。詳細機能は順次追加予定です。</p>
-            </div>
-            
-            <div class="card" style="max-width: none;">
-                <h2 class="title">API設定</h2>
-                <form method="post" action="options.php">
-                    <?php settings_fields('giji_improved_settings'); ?>
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row">JグランツAPI設定</th>
-                            <td>
-                                <p>JグランツAPIの設定を行います。</p>
-                                <p><em>※ 開発中</em></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">AI設定</th>
-                            <td>
-                                <p>AI機能の設定を行います。</p>
-                                <p><em>※ 開発中</em></p>
-                            </td>
-                        </tr>
-                    </table>
-                </form>
-            </div>
-        </div>
-        <?php
-    }
-    
-    /**
-     * プロンプト管理画面の表示
-     */
-    public function display_prompts_page() {
-        ?>
-        <div class="wrap">
-            <h1>プロンプト管理</h1>
-            <div class="notice notice-info">
-                <p>AIプロンプトの管理機能は現在開発中です。</p>
-            </div>
-        </div>
-        <?php
-    }
-    
-    /**
-     * ログ画面の表示
-     */
-    public function display_logs_page() {
-        ?>
-        <div class="wrap">
-            <h1>ログ</h1>
-            <div class="notice notice-info">
-                <p>ログ表示機能は現在開発中です。</p>
-            </div>
-        </div>
-        <?php
-    }
-    
-    /**
-     * 統計画面の表示
-     */
-    public function display_statistics_page() {
-        ?>
-        <div class="wrap">
-            <h1>統計</h1>
-            <div class="notice notice-info">
-                <p>統計表示機能は現在開発中です。</p>
-            </div>
-        </div>
-        <?php
-    }
-    
-    /**
-     * 管理画面スクリプトとスタイルの読み込み
-     */
-    public function enqueue_admin_scripts($hook) {
-        // プラグイン関連ページでのみ実行
-        if (strpos($hook, 'grant-insight-jgrants-importer-improved') !== false || 
-            strpos($hook, 'giji-improved') !== false) {
-            
-            // CSSファイルが存在する場合のみ読み込み
-            $css_file = GIJI_IMPROVED_PLUGIN_DIR . 'assets/admin.css';
-            if (file_exists($css_file)) {
-                wp_enqueue_style('giji-admin-style', GIJI_IMPROVED_PLUGIN_URL . 'assets/admin.css', array(), GIJI_IMPROVED_PLUGIN_VERSION);
+                });
             }
-            
-            // JSファイルが存在する場合のみ読み込み
-            $js_file = GIJI_IMPROVED_PLUGIN_DIR . 'assets/admin.js';
-            if (file_exists($js_file)) {
-                wp_enqueue_script('giji-admin-script', GIJI_IMPROVED_PLUGIN_URL . 'assets/admin.js', array('jquery'), GIJI_IMPROVED_PLUGIN_VERSION, true);
-            }
+        } else {
+            // クラスが見つからない場合の最低限のメニュー
+            add_action('admin_menu', function() {
+                add_menu_page(
+                    'Jグランツ・インポーター改善版',
+                    'Jグランツ・インポーター改善版', 
+                    'manage_options',
+                    'grant-insight-jgrants-importer-improved',
+                    function() {
+                        echo '<div class="wrap">';
+                        echo '<h1>Jグランツ・インポーター改善版</h1>';
+                        echo '<div class="notice notice-error"><p>管理画面クラスが見つかりません。プラグインファイルが正しくアップロードされているか確認してください。</p></div>';
+                        echo '</div>';
+                    },
+                    'dashicons-money-alt',
+                    30
+                );
+            });
         }
     }
     
